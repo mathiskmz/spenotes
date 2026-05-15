@@ -1,8 +1,16 @@
 class ApplicationController < ActionController::Base
   before_action :authenticate_user!
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  before_action :configure_permitted_parameters, if: :devise_controller?
 
-  # Changes to the importmap will invalidate the etag for HTML responses
-  stale_when_importmap_changes  
+  allow_browser versions: :modern
+  stale_when_importmap_changes
+
+  protected
+
+  # Devise n'accepte que email + password par défaut.
+  # Cette méthode autorise le champ :name lors de l'inscription et de la mise à jour du profil.
+  def configure_permitted_parameters
+    devise_parameter_sanitizer.permit(:sign_up, keys: [:name])
+    devise_parameter_sanitizer.permit(:account_update, keys: [:name])
+  end
 end

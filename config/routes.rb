@@ -12,12 +12,13 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   root "pages#home"
+  get "listen", to: "pages#listen", as: :listen
 
   resources :patients do
     resources :notes, only: [ :new, :create ]
   end
 
-  resources :notes, only: [ :show, :edit, :update, :destroy ]
+  resources :notes, only: [ :index, :new, :create, :show, :edit, :update, :destroy ]
 
   resources :vocabularies, only: [ :index, :create, :destroy ]
 

@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+@theme {
+  --color-sp-primary: #2C1F1A;
+  --color-sp-accent:  #C49A6C;
+  --color-sp-bg:      #F5F0EA;
+  --color-sp-surface: #FFFFFF;
+  --color-sp-danger:  #DC2626;
+  --color-sp-success: #16A34A;
+}
