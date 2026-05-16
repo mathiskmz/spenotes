@@ -3,31 +3,53 @@
   <head>
     <title><%= content_for(:title) || "Spenotes" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <%# PWA / iOS "Ajouter à l'écran d'accueil" %>
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Spenotes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Spenotes">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Spenotes">
+    <meta name="theme-color" content="#2C1F1A">
+
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
     <%= yield :head %>
 
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+    <%# Favicon onglet navigateur %>
+    <link rel="icon" type="image/x-icon" href="<%= asset_path('favicon.ico') %>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<%= asset_path('favicon-16x16.png') %>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<%= asset_path('favicon-32x32.png') %>">
 
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
+    <%# Icône iOS (bouton "Ajouter à l'écran d'accueil") %>
+    <link rel="apple-touch-icon" sizes="180x180" href="<%= asset_path('apple-touch-icon.png') %>">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%# Manifest PWA (installation Android / desktop) %>
+    <link rel="manifest" href="/manifest">
+
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <main class="container mx-auto mt-28 px-5 flex">
+  <body class="bg-sp-bg min-h-screen">
+    <% if notice.present? %>
+      <div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow text-sm max-w-xs text-center">
+        <%= notice %>
+      </div>
+    <% end %>
+    <% if alert.present? %>
+      <div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-red-100 text-red-800 px-4 py-2 rounded-lg shadow text-sm max-w-xs text-center">
+        <%= alert %>
+      </div>
+    <% end %>
+
+    <div class="max-w-md mx-auto <%= user_signed_in? ? 'pb-20' : '' %>">
       <%= yield %>
-      <p class="notice"><%= notice %></p>
-      <p class="alert"><%= alert %></p>
-    </main>
+    </div>
+
+    <% if user_signed_in? %>
+      <%= render 'shared/tab_bar' %>
+    <% end %>
   </body>
 </html>

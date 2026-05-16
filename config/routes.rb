@@ -7,17 +7,18 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
+  get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Defines the root path route ("/")
   root "pages#home"
+  get "listen", to: "pages#listen", as: :listen
 
   resources :patients do
     resources :notes, only: [ :new, :create ]
   end
 
-  resources :notes, only: [ :show, :edit, :update, :destroy ]
+  resources :notes, only: [ :index, :new, :create, :show, :edit, :update, :destroy ]
 
   resources :vocabularies, only: [ :index, :create, :destroy ]
 
