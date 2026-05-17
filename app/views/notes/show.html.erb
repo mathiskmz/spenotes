@@ -120,9 +120,10 @@
     <% end %>
 
     <%# Formulaire upload (déclenché par le label +) %>
-    <%= form_with url: add_files_note_path(@note), method: :post, data: { turbo: false } do |f| %>
+    <%= form_with url: add_files_note_path(@note), method: :post do |f| %>
       <%= f.file_field :files, multiple: true, accept: "image/*,video/*",
             id: "file_upload_input", class: "hidden",
+            direct_upload: true,
             data: { action: "change->media-modal#validateAndSubmit" } %>
     <% end %>
 

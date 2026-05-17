@@ -65,14 +65,9 @@ class NotesController < ApplicationController
   end
 
   def add_files
-    files = Array(params[:files]).select { |f| f.respond_to?(:size) }
-    if files.any? { |f| f.size > 100.megabytes }
-      return redirect_to note_path(@note), alert: "Fichier trop volumineux. La limite est de 100 Mo par fichier."
-    end
-    @note.files.attach(files) if files.any?
+    blobs = Array(params[:files]).reject(&:blank?)
+    @note.files.attach(blobs) if blobs.any?
     redirect_to note_path(@note)
-  rescue ActiveStorage::IntegrityError
-    redirect_to note_path(@note), alert: "Fichier trop volumineux. La limite est de 100 Mo par fichier."
   end
 
   def remove_file
