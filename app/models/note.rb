@@ -1,5 +1,5 @@
 class Note < ApplicationRecord
   belongs_to :patient
   belongs_to :user
-  has_many :attachments, dependent: :destroy
+  has_many_attached :files
 end
