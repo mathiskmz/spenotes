@@ -1,5 +1,5 @@
 class NotesController < ApplicationController
-  before_action :set_note, only: [:show, :edit, :update, :destroy]
+  before_action :set_note, only: [:show, :edit, :update, :destroy, :add_files, :remove_file]
 
   def index
     # includes(:patient) évite le problème N+1 : sans ça, Rails ferait une requête SQL
@@ -62,6 +62,23 @@ class NotesController < ApplicationController
     else
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  def add_files
+    files = Array(params[:files]).select { |f| f.respond_to?(:size) }
+    if files.any? { |f| f.size > 100.megabytes }
+      return redirect_to note_path(@note), alert: "Fichier trop volumineux. La limite est de 100 Mo par fichier."
+    end
+    @note.files.attach(files) if files.any?
+    redirect_to note_path(@note)
+  rescue ActiveStorage::IntegrityError
+    redirect_to note_path(@note), alert: "Fichier trop volumineux. La limite est de 100 Mo par fichier."
+  end
+
+  def remove_file
+    attachment = @note.files.attachments.find(params[:attachment_id])
+    attachment.purge
+    redirect_to note_path(@note)
   end
 
   def destroy
