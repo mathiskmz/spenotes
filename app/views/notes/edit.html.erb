@@ -3,11 +3,11 @@
 <%= form_with model: @note, class: "flex flex-col" do |f| %>
   <%# Header %>
   <div class="flex items-center justify-between px-4 py-4">
-    <%= link_to note_path(@note), class: "flex items-center gap-1 text-sp-accent text-sm font-medium" do %>
+    <%= link_to patient_path(@note.patient), class: "flex items-center gap-1 text-sp-accent text-sm font-medium" do %>
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
       </svg>
-      Notes
+      <%= @note.patient.name %>
     <% end %>
     <h1 class="text-base font-semibold text-sp-primary">Modifier la note</h1>
     <%= f.submit "Enregistrer", class: "px-4 py-2 rounded-full bg-sp-primary text-white text-sm font-semibold cursor-pointer" %>
