@@ -18,7 +18,7 @@ Rails.application.routes.draw do
     resources :notes, only: [ :new, :create ]
   end
 
-  resources :notes, only: [ :index, :new, :create, :show, :edit, :update, :destroy ] do
+  resources :notes, only: [ :new, :create, :show, :edit, :update, :destroy ] do
     member do
       post :add_files
       delete :remove_file
