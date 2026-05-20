@@ -21,6 +21,8 @@ Rails.application.routes.draw do
       post :upload_chunk, on: :member
       post :add_manual_note, on: :member
       post :finalize, on: :member
+      post :regenerate_summary, on: :member
+      post :regenerate_recommendations, on: :member
     end
     resources :notes, only: [ :new, :create ]
     member do

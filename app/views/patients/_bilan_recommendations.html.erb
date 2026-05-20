@@ -1,0 +1,23 @@
+<% if bilan.recommendations.present? %>
+  <div class="ai-border">
+    <div class="ai-border-inner">
+      <div class="prose-compact text-gray-800 max-w-none"><%= render_markdown_compact(bilan.recommendations) %></div>
+    </div>
+  </div>
+<% else %>
+  <% elapsed   = Time.current - bilan.updated_at %>
+  <% remaining = [ (30 - elapsed).ceil * 1000, 0 ].max %>
+  <div data-controller="summary-pending"
+       data-summary-pending-delay-value="<%= remaining %>"
+       data-summary-pending-url-value="<%= regenerate_recommendations_patient_bilan_path(bilan.patient) %>">
+    <p data-summary-pending-target="pending"
+       class="text-xs text-gray-400 italic animate-pulse <%= remaining == 0 ? 'hidden' : '' %>">
+      Recommandations en cours de génération…
+    </p>
+    <button data-summary-pending-target="retry"
+            data-action="click->summary-pending#regenerate"
+            class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-sp-primary text-white <%= remaining > 0 ? 'hidden' : '' %>">
+      Générer les recommandations
+    </button>
+  </div>
+<% end %>

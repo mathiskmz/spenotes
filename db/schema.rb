@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_141402) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_20_210602) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -49,7 +49,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_141402) do
     t.jsonb "manual_notes", default: []
     t.bigint "patient_id", null: false
     t.text "raw_transcription"
+    t.text "recommendations"
     t.string "status", default: "idle"
+    t.text "summary"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["patient_id"], name: "index_bilans_on_patient_id"

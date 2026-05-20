@@ -1,6 +1,6 @@
 class BilansController < ApplicationController
   before_action :set_patient
-  before_action :set_bilan, only: [ :show, :edit, :update, :remove_file, :upload_chunk, :add_manual_note, :finalize ]
+  before_action :set_bilan, only: [ :show, :edit, :update, :remove_file, :upload_chunk, :add_manual_note, :finalize, :regenerate_summary, :regenerate_recommendations ]
 
   def show; end
 
@@ -10,8 +10,7 @@ class BilansController < ApplicationController
   end
 
   def new
-    # Si un bilan existe déjà, on redirige vers l'édition
-    redirect_to edit_patient_bilan_path(@patient) if @patient.bilan.present?
+    redirect_to edit_patient_bilan_path(@patient) and return if @patient.bilan.present?
     @bilan = @patient.build_bilan
   end
 
@@ -53,13 +52,15 @@ class BilansController < ApplicationController
     chunk_duration = params[:chunk_duration].to_i
     @bilan.update!(status: "recording", duration_seconds: @bilan.duration_seconds + chunk_duration)
 
-    # On transcrit le chunk avec le vocabulaire perso du praticien
     vocabulary = current_user.vocabularies
-    segment = WhisperService.call(audio_blob.tempfile, vocabulary: vocabulary)
-
-    @bilan.append_transcription!(segment) if segment.present?
-
-    render json: { ok: true, segment: segment }
+    begin
+      segment = WhisperService.call(audio_blob.tempfile, vocabulary: vocabulary)
+      @bilan.append_transcription!(segment) if segment.present?
+      render json: { ok: true, segment: segment }
+    rescue Faraday::TimeoutError, Faraday::Error => e
+      Rails.logger.error "[upload_chunk] Whisper error: #{e.message}"
+      render json: { ok: false, error: "Transcription indisponible pour ce chunk" }
+    end
   end
 
   # Reçoit une note manuelle saisie pendant l'écoute (active ou en pause)
@@ -75,11 +76,23 @@ class BilansController < ApplicationController
   end
 
   # Déclenche la synthèse IA et redirige vers la page de résultat
+  def regenerate_summary
+    @bilan.update!(summary: nil)
+    SummaryJob.perform_later(@bilan.id)
+    render json: { ok: true }
+  end
+
+  def regenerate_recommendations
+    @bilan.update!(recommendations: nil)
+    RecommendationsJob.perform_later(@bilan.id)
+    render json: { ok: true }
+  end
+
   def finalize
     @bilan.update!(status: "processing")
     SynthesisJob.perform_later(@bilan.id)
 
-    render json: { ok: true, redirect_url: patient_bilan_path(@patient) }
+    render json: { ok: true, redirect_url: patient_path(@patient) }
   end
 
   private

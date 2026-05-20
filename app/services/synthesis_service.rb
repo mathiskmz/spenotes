@@ -11,18 +11,22 @@ class SynthesisService
       "[#{format('%02d:%02d', minutes, seconds)}] #{note['text']}"
     end.join("\n")
 
-    # Prompt principal envoyé à GPT
     prompt = <<~PROMPT
-      Tu es un assistant pour kinésithérapeute. Rédige un compte-rendu de consultation
-      clair et structuré à partir de la transcription audio et des notes manuelles ci-dessous.
+      Tu es un assistant pour kinésithérapeute. Rédige un compte-rendu de consultation structuré
+      à partir de la transcription audio et des notes manuelles ci-dessous.
+
+      RÈGLES STRICTES — à respecter absolument :
+      - N'écris QUE ce qui est présent dans la transcription ou les notes. Aucune invention.
+      - INTERDIT : tout champ entre crochets comme [À compléter], [Nom], [Date], [Praticien], etc.
+      - INTERDIT : toute ligne de signature, identité du praticien, coordonnées, date de consultation.
+      - Si une information est absente, ne mentionne pas le champ — omets simplement la section.
+      - Le compte-rendu doit être utilisable tel quel, sans rien à remplir.
 
       TRANSCRIPTION AUDIO :
       #{bilan.raw_transcription}
 
       NOTES MANUELLES DU PRATICIEN :
       #{notes_text.presence || "Aucune note manuelle"}
-
-      Rédige un compte-rendu professionnel en français, structuré avec des sections claires.
     PROMPT
 
     response = client.chat(
@@ -33,6 +37,16 @@ class SynthesisService
       }
     )
 
-    response.dig("choices", 0, "message", "content")
+    content = response.dig("choices", 0, "message", "content").to_s
+    strip_placeholder_lines(content)
+  end
+
+  def self.strip_placeholder_lines(text)
+    text
+      .lines
+      .reject { |line| line.match?(/\[.+\]/) }
+      .join
+      .gsub(/\n{3,}/, "\n\n")
+      .strip
   end
 end

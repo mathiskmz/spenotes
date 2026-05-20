@@ -5,10 +5,11 @@ class SynthesisJob < ApplicationJob
   def perform(bilan_id)
     bilan = Bilan.find(bilan_id)
 
-    # On vérifie que le bilan est bien en attente de traitement
     return unless bilan.status == "processing"
+    return bilan.update!(status: "idle") if bilan.raw_transcription.blank? && bilan.manual_notes.blank?
 
     content = SynthesisService.call(bilan)
     bilan.update!(content: content, status: "done")
+    SummaryJob.perform_later(bilan.id)
   end
 end

@@ -5,6 +5,13 @@ module ApplicationHelper
     md.render(text.to_s).html_safe
   end
 
+  def render_markdown_compact(text)
+    renderer = Redcarpet::Render::HTML.new(hard_wrap: false)
+    md = Redcarpet::Markdown.new(renderer, no_intra_emphasis: true, autolink: true, tables: true)
+    processed = text.to_s.gsub(/([^\n])\n(- )/, "\\1\n\n\\2")
+    md.render(processed).html_safe
+  end
+
   def patient_initials(name)
     name.to_s.split.first(2).map { |w| w[0].upcase }.join
   end
