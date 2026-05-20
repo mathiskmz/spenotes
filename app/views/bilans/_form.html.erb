@@ -1,0 +1,178 @@
+<% content_for :title, "Bilan — #{patient.name}" %>
+
+<div data-controller="dictation media-modal" class="flex flex-col min-h-screen">
+
+  <%# Notification erreur upload %>
+  <div data-media-modal-target="notification"
+       class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-red-100 text-red-800 px-4 py-2 rounded-lg shadow text-sm max-w-xs text-center">
+  </div>
+
+  <%# Overlay chargement upload %>
+  <div data-media-modal-target="loading"
+       class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6">
+    <div class="bg-white rounded-2xl p-6 w-72 shadow-xl">
+      <p class="text-sm font-semibold text-sp-primary text-center mb-4">Envoi en cours…</p>
+      <div class="w-full bg-gray-100 rounded-full h-2 mb-2 overflow-hidden">
+        <div data-media-modal-target="progressBar" class="bg-sp-accent h-2 rounded-full transition-all duration-200" style="width: 0%"></div>
+      </div>
+      <p data-media-modal-target="progressText" class="text-xs text-gray-400 text-center">0 %</p>
+    </div>
+  </div>
+
+  <%# Header %>
+  <div class="flex items-center justify-between px-4 py-4 bg-sp-bg sticky top-0 z-10">
+    <%= link_to patient_path(patient), class: "flex items-center gap-1 text-sp-accent text-sm font-medium" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+      </svg>
+      <%= patient.name %>
+    <% end %>
+    <h1 class="text-base font-semibold text-sp-primary">Bilan initial</h1>
+    <%= f.submit "Enregistrer", class: "px-4 py-2 rounded-full bg-sp-primary text-white text-sm font-semibold cursor-pointer" %>
+  </div>
+
+  <div class="px-4 flex-1 flex flex-col">
+
+    <%# Erreurs %>
+    <% if bilan.errors.any? %>
+      <div class="mb-4 bg-red-50 rounded-xl p-4">
+        <% bilan.errors.full_messages.each do |msg| %>
+          <p class="text-sm text-red-700"><%= msg %></p>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# Indicateur dictée active %>
+    <p data-dictation-target="status"
+       class="text-xs text-sp-accent italic mb-2 min-h-[1rem]"></p>
+
+    <%# Textarea contenu %>
+    <%= f.text_area :content,
+          data: { "dictation-target": "textarea" },
+          placeholder: "Anamnèse, antécédents, objectifs de traitement…",
+          rows: 10,
+          class: "w-full bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none resize-none leading-relaxed flex-1 mb-4" %>
+
+    <%# Pièces jointes existantes %>
+    <% if bilan.persisted? && bilan.files.attached? %>
+      <div class="mb-4">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Pièces jointes</p>
+        <div class="grid grid-cols-3 gap-2">
+          <% bilan.files.attachments.each do |attachment| %>
+            <% blob = attachment.blob %>
+            <div class="relative aspect-square rounded-xl overflow-hidden bg-gray-100">
+              <% if blob.image? %>
+                <%= image_tag url_for(blob),
+                      class: "w-full h-full object-cover cursor-pointer",
+                      data: { action: "click->media-modal#open", src: url_for(blob), type: "image" },
+                      alt: "" %>
+              <% elsif blob.video? %>
+                <div class="w-full h-full flex items-center justify-center bg-gray-800 cursor-pointer"
+                     data-action="click->media-modal#open"
+                     data-src="<%= url_for(blob) %>"
+                     data-type="video">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-white/80" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+              <% end %>
+              <%= form_with url: remove_file_patient_bilan_path(patient, attachment_id: attachment.id), method: :delete do %>
+                <button type="button"
+                        data-action="click->media-modal#confirmDelete"
+                        class="absolute top-1 right-1 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Input fichier caché (déclenché par le bouton Joindre) %>
+    <%= f.file_field :files, multiple: true, accept: "image/*,video/*",
+          id: "bilan_file_input",
+          class: "hidden",
+          direct_upload: true,
+          data: {
+            "dictation-target": "fileInput",
+            action: "change->dictation#validateAndUpload"
+          } %>
+
+  </div>
+
+  <%# Modales media-modal %>
+  <div data-media-modal-target="confirmModal"
+       class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 w-72 shadow-xl">
+      <p class="text-sm font-semibold text-sp-primary mb-1">Supprimer ce fichier ?</p>
+      <p class="text-xs text-gray-500 mb-5">Cette action est irréversible.</p>
+      <div class="flex gap-3">
+        <button data-action="click->media-modal#closeConfirm"
+                class="flex-1 py-2 rounded-xl border border-gray-200 text-sm text-gray-600">Annuler</button>
+        <button data-action="click->media-modal#confirmDeleteSubmit"
+                class="flex-1 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold">Supprimer</button>
+      </div>
+    </div>
+  </div>
+  <div data-media-modal-target="modal"
+       class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+       data-action="click->media-modal#closeOnBackdrop">
+    <button data-action="click->media-modal#close"
+            class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white z-10">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <%= image_tag "data:,", data: { "media-modal-target": "image" }, class: "hidden max-w-full max-h-[85vh] rounded-xl object-contain", alt: "" %>
+    <video data-media-modal-target="video" class="hidden max-w-full max-h-[85vh] rounded-xl" controls playsinline></video>
+  </div>
+
+  <%# Barre de modes %>
+  <div class="border-t border-gray-200 bg-white grid grid-cols-4 sticky bottom-0 pb-safe">
+
+    <%# Clavier %>
+    <button type="button"
+            onclick="document.querySelector('[data-dictation-target=textarea]')?.focus()"
+            class="flex flex-col items-center gap-1 py-3 text-sp-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 7H7a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2h-2M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2M9 7h6" />
+      </svg>
+      <span class="text-xs font-medium">Clavier</span>
+    </button>
+
+    <%# Dictée %>
+    <button type="button"
+            data-action="click->dictation#toggleDictation"
+            data-dictation-target="micButton"
+            class="flex flex-col items-center gap-1 py-3 text-gray-400">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+      </svg>
+      <span class="text-xs">Dictée</span>
+    </button>
+
+    <%# Écoute (placeholder) %>
+    <button type="button" disabled
+            class="flex flex-col items-center gap-1 py-3 text-gray-300 cursor-not-allowed">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M12 9.5v5M6.464 8.464a5 5 0 000 7.072" />
+      </svg>
+      <span class="text-xs">Écoute</span>
+    </button>
+
+    <%# Joindre %>
+    <button type="button"
+            data-action="click->dictation#openFilePicker"
+            class="flex flex-col items-center gap-1 py-3 text-gray-400">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+      </svg>
+      <span class="text-xs">Joindre</span>
+    </button>
+
+  </div>
+
+</div>

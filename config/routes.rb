@@ -15,7 +15,14 @@ Rails.application.routes.draw do
   get "listen", to: "pages#listen", as: :listen
 
   resources :patients do
+    resource :bilan, only: [ :new, :create, :edit, :update ] do
+      delete :remove_file, on: :member
+    end
     resources :notes, only: [ :new, :create ]
+    member do
+      post :add_files
+      delete :remove_file
+    end
   end
 
   resources :notes, only: [ :new, :create, :show, :edit, :update, :destroy ] do

@@ -1,0 +1,3 @@
+<%= form_with model: @bilan, url: patient_bilan_path(@patient), method: :patch do |f| %>
+  <%= render "form", f: f, bilan: @bilan, patient: @patient %>
+<% end %>
