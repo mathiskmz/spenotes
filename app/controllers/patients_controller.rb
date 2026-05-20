@@ -18,7 +18,12 @@ class PatientsController < ApplicationController
   def create
     @patient = current_user.patients.build(patient_params)
     if @patient.save
-      redirect_to patients_path, notice: "Patient ajouté."
+      # Si on vient de la page Écoute, on redirige directement vers l'enregistrement
+      if params[:redirect_to_recording]
+        redirect_to recording_patient_bilan_path(@patient)
+      else
+        redirect_to patients_path, notice: "Patient ajouté."
+      end
     else
       render :new, status: :unprocessable_entity
     end

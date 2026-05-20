@@ -1,4 +1,8 @@
 <%= form_with model: patient, class: "flex flex-col gap-5" do |f| %>
+  <%# Transmis si on vient de la page Écoute, pour rediriger vers l'enregistrement après création %>
+  <% if local_assigns[:redirect_to_recording].present? %>
+    <%= hidden_field_tag :redirect_to_recording, true %>
+  <% end %>
   <% if patient.errors.any? %>
     <div class="bg-red-50 rounded-xl p-4">
       <% patient.errors.full_messages.each do |msg| %>
