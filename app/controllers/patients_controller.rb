@@ -1,5 +1,5 @@
 class PatientsController < ApplicationController
-  before_action :set_patient, only: [:show, :edit, :update, :destroy]
+  before_action :set_patient, only: [:show, :edit, :update, :destroy, :add_files, :remove_file]
 
   def index
     @patients = current_user.patients.order(updated_at: :desc)
@@ -34,6 +34,18 @@ class PatientsController < ApplicationController
     end
   end
 
+  def add_files
+    blobs = Array(params[:files]).reject(&:blank?)
+    @patient.files.attach(blobs) if blobs.any?
+    redirect_to patient_path(@patient)
+  end
+
+  def remove_file
+    attachment = @patient.files.attachments.find(params[:attachment_id])
+    attachment.purge
+    redirect_to patient_path(@patient)
+  end
+
   def destroy
     @patient.destroy
     redirect_to patients_path, notice: "Patient supprimé."
@@ -48,6 +60,6 @@ class PatientsController < ApplicationController
   end
 
   def patient_params
-    params.require(:patient).permit(:name, :age, :pathology)
+    params.require(:patient).permit(:name, :age, :pathology, :note_rapide)
   end
 end
