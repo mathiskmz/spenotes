@@ -4,7 +4,7 @@
   <%# Header %>
   <div class="flex items-center justify-between mb-5">
     <h1 class="text-2xl font-bold text-sp-primary">Vocabulaire</h1>
-    <span class="text-sm text-gray-400"><%= @vocabularies.count %> terme<%= @vocabularies.count > 1 ? "s" : "" %></span>
+    <span class="text-sm text-gray-400"><%= @vocabularies.count %> terme<%= @vocabularies.count > 1 ? "s" : "" %> sur <%= @limit %> maximum</span>
   </div>
 
   <%# Bannière d'aide %>
@@ -26,6 +26,18 @@
       <% end %>
     <% end %>
   </div>
+
+  <%# Vocabulaire de base %>
+  <details class="mb-5">
+    <summary class="text-xs text-gray-400 cursor-pointer select-none">
+      Liste de mots-clés définis par défaut selon la profession indiquée pour améliorer la transcription (<%= @base_keywords.count %>)
+    </summary>
+    <div class="mt-2 flex flex-wrap gap-1.5">
+      <% @base_keywords.each do |kw| %>
+        <span class="text-xs text-gray-400 bg-sp-bg px-2 py-0.5 rounded-full"><%= kw %></span>
+      <% end %>
+    </div>
+  </details>
 
   <%# Formulaire d'ajout %>
   <div class="bg-white rounded-2xl p-4 shadow-sm mb-5">

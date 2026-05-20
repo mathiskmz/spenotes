@@ -5,5 +5,7 @@ class PagesController < ApplicationController
     redirect_to patients_path if user_signed_in?
   end
 
-  def listen; end
+  def listen
+    @patients = current_user.patients.order(:name)
+  end
 end
