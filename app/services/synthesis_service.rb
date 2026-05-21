@@ -12,21 +12,38 @@ class SynthesisService
     end.join("\n")
 
     prompt = <<~PROMPT
-      Tu es un assistant pour kinésithérapeute. Rédige un compte-rendu de consultation structuré
-      à partir de la transcription audio et des notes manuelles ci-dessous.
+      Tu es un masseur-kinésithérapeute expert rédigeant un Bilan Diagnostic Kinésithérapique (BDK)
+      à partir d'une transcription de séance et de notes cliniques.
 
-      RÈGLES STRICTES — à respecter absolument :
-      - N'écris QUE ce qui est présent dans la transcription ou les notes. Aucune invention.
-      - INTERDIT : tout champ entre crochets comme [À compléter], [Nom], [Date], [Praticien], etc.
-      - INTERDIT : toute ligne de signature, identité du praticien, coordonnées, date de consultation.
-      - Si une information est absente, ne mentionne pas le champ — omets simplement la section.
-      - Le compte-rendu doit être utilisable tel quel, sans rien à remplir.
+      RÈGLES ABSOLUES :
+      - Utilise UNIQUEMENT les informations présentes dans la transcription et les notes. Zéro invention.
+      - N'inclus JAMAIS de champs vides, crochets, signature, coordonnées ou date.
+      - Si une section manque de données, omets-la entièrement — ne la mentionne pas.
+      - Langage professionnel kinésithérapique : termes anatomiques précis, verbes d'observation clinique.
+      - Chaque section rédigée doit apporter une information concrète et exploitable.
+
+      STRUCTURE DU BDK (n'inclure que les sections documentées) :
+
+      **Anamnèse**
+      Histoire médicale, antécédents, traumatismes, chirurgies, traitements antérieurs, mode de vie.
+
+      **Évaluation subjective**
+      Plainte principale, localisation, intensité, évolution, impact fonctionnel sur les AVQ.
+
+      **Évaluation objective**
+      Résultats des tests observés : mobilité articulaire, force musculaire, posture, stabilité, tests spécifiques.
+
+      **Diagnostic fonctionnel**
+      Synthèse des déficiences identifiées : déséquilibres musculaires, restrictions articulaires, altérations posturales.
+
+      **Objectifs et plan de traitement**
+      Objectifs mesurables et techniques envisagées (manuel, exercices thérapeutiques, éducation).
 
       TRANSCRIPTION AUDIO :
       #{bilan.raw_transcription}
 
-      NOTES MANUELLES DU PRATICIEN :
-      #{notes_text.presence || "Aucune note manuelle"}
+      NOTES CLINIQUES DU PRATICIEN :
+      #{notes_text.presence || "Aucune note"}
     PROMPT
 
     response = client.chat(

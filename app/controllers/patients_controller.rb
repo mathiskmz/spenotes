@@ -42,7 +42,10 @@ class PatientsController < ApplicationController
   def add_files
     blobs = Array(params[:files]).reject(&:blank?)
     @patient.files.attach(blobs) if blobs.any?
-    redirect_to patient_path(@patient)
+    respond_to do |format|
+      format.json { render json: { ok: true } }
+      format.html { redirect_to patient_path(@patient) }
+    end
   end
 
   def remove_file
