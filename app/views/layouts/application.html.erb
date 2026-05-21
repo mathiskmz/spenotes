@@ -2,7 +2,7 @@
 <html>
   <head>
     <title><%= content_for(:title) || "Spenotes" %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 
     <%# PWA / iOS "Ajouter à l'écran d'accueil" %>
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -44,7 +44,7 @@
       </div>
     <% end %>
 
-    <div class="max-w-md mx-auto <%= user_signed_in? ? 'pb-20' : '' %>">
+    <div class="max-w-md mx-auto <%= user_signed_in? ? 'page-bottom-padding' : '' %>">
       <%= yield %>
     </div>
 

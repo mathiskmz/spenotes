@@ -2,11 +2,12 @@ import { Controller } from "@hotwired/stimulus"
 
 // Gère la session d'écoute : enregistrement audio, timer, notes manuelles, envoi des chunks à Whisper
 export default class extends Controller {
-  static targets = ["timer", "manualInput", "status", "startBtn", "pauseBtn", "resumeBtn", "stopBtn", "notesList", "confirmModal"]
+  static targets = ["timer", "manualInput", "status", "startBtn", "pauseBtn", "resumeBtn", "stopBtn", "notesList", "confirmModal", "fileInput"]
   static values = {
     uploadChunkUrl: String,
     addManualNoteUrl: String,
-    finalizeUrl: String
+    finalizeUrl: String,
+    addFilesUrl: String
   }
 
   connect() {
@@ -114,6 +115,45 @@ export default class extends Controller {
     this.confirmModalTarget.classList.add("hidden")
   }
 
+  // Met l'écoute en pause et ouvre le sélecteur de fichier
+  attachFile() {
+    if (this.isRecording && !this.isPaused) {
+      this.pause()
+      this._showStatus("Écoute mise en pause — joignez votre fichier")
+    }
+    this.fileInputTarget.click()
+  }
+
+  // Upload le fichier et reprend l'écoute automatiquement
+  async onFileSelected(event) {
+    const file = event.target.files[0]
+    if (!file) return
+
+    this._showStatus("Envoi en cours…")
+
+    const formData = new FormData()
+    formData.append("files[]", file)
+
+    await fetch(this.addFilesUrlValue, {
+      method: "POST",
+      headers: {
+        "X-CSRF-Token": this._csrfToken(),
+        "Accept": "application/json"
+      },
+      body: formData
+    })
+
+    this._showStatus("Fichier ajouté ✓")
+    event.target.value = ""
+
+    // Reprise automatique si l'écoute était active
+    if (this.isPaused && this.isRecording) {
+      await new Promise(r => setTimeout(r, 800))
+      this._animateResume()
+      this.resume()
+    }
+  }
+
   disconnect() {
     this._stopAll()
   }
@@ -197,6 +237,12 @@ export default class extends Controller {
     item.className = "flex gap-2 text-sm text-gray-700 py-1 border-b border-gray-100"
     item.innerHTML = `<span class="text-xs text-sp-accent font-mono shrink-0 pt-0.5">${time}</span><span>${text}</span>`
     this.notesListTarget.prepend(item)
+  }
+
+  _animateResume() {
+    this._showStatus("Reprise de l'écoute…")
+    this.timerTarget.classList.add("recording-resume")
+    setTimeout(() => this.timerTarget.classList.remove("recording-resume"), 1200)
   }
 
   _showStatus(message) {

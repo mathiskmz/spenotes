@@ -42,6 +42,26 @@
 .prose-compact ol { list-style-type: decimal; padding-left: 1rem; }
 .prose-compact li { margin-bottom: 0.1rem; font-size: 0.75rem; line-height: 1.4; }
 
+/* Animation reprise écoute */
+@keyframes resume-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  40%       { opacity: 0.4; transform: scale(0.96); }
+  70%       { opacity: 1; transform: scale(1.04); }
+}
+.recording-resume {
+  animation: resume-pulse 1.2s ease-in-out;
+}
+
+/* Safe area iOS PWA */
+.tab-bar-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Espacement bas des pages pour ne pas être masqué par la tab bar + safe area */
+.page-bottom-padding {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+
 @theme {
   --color-sp-primary: #2C1F1A;
   --color-sp-accent:  #C49A6C;
