@@ -34,7 +34,7 @@ class WhisperService
   # audio_data : StringIO ou File contenant le blob audio
   # vocabulary : liste des objets Vocabulary de l'utilisateur pour le prompt perso
   def self.call(audio_data, vocabulary: [])
-    client = OpenAI::Client.new(access_token: ENV.fetch("OPENAI_API_KEY"), request_timeout: 30)
+    client = OpenAI::Client.new(access_token: ENV.fetch("OPENAI_API_KEY"), request_timeout: 60)
 
     # On place le vocab perso en fin de prompt — Whisper utilise les derniers tokens en priorité
     vocab_perso = vocabulary.map { |v| "#{v.input}: #{v.output}" }.join(", ")

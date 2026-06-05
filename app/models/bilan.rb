@@ -13,9 +13,24 @@ class Bilan < ApplicationRecord
     update!(manual_notes: notes)
   end
 
-  # Ajoute un segment de transcription Whisper à la suite
+  # Ajoute un segment de transcription Whisper à la suite (dans pending_transcription)
   def append_transcription!(segment)
-    new_transcription = [ raw_transcription, segment ].compact.join(" ")
-    update!(raw_transcription: new_transcription)
+    new_transcription = [ pending_transcription, segment ].compact.join(" ")
+    update!(pending_transcription: new_transcription)
+  end
+
+  # Appelé au début d'une nouvelle session quand un bilan existe déjà
+  def reset_session!
+    update!(
+      pending_transcription: nil,
+      manual_notes: [],
+      duration_seconds: 0,
+      status: "idle"
+    )
+  end
+
+  # Bascule pending_transcription → raw_transcription avant la synthèse
+  def commit_transcription!
+    update!(raw_transcription: pending_transcription, pending_transcription: nil)
   end
 end

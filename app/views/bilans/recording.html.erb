@@ -22,13 +22,15 @@
   <div class="flex-1 flex flex-col px-4 pb-6 gap-6">
 
     <%# Timer %>
-    <div class="flex flex-col items-center pt-8 pb-4 gap-4">
+    <div class="flex flex-col items-center pt-8 pb-4 gap-2">
       <span data-recording-target="timer"
             class="text-5xl font-mono font-bold text-sp-primary tabular-nums">
         00:00:00
       </span>
+      <span class="text-xs font-mono italic text-gray-500">2 heures d'écoute disponible</span>
       <p data-recording-target="status" class="text-sm text-sp-accent italic min-h-[1.25rem]"></p>
     </div>
+
 
     <%# Boutons de contrôle %>
     <div class="flex justify-center gap-4">
@@ -125,6 +127,28 @@
     </div>
 
   </div>
+
+  <%# Modal d'avertissement — affiché si un bilan existe déjà %>
+  <% if @bilan_has_content %>
+    <div id="overwrite-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <h2 class="text-base font-bold text-sp-primary mb-2">Un bilan existe déjà</h2>
+        <p class="text-sm text-gray-500 mb-6">
+          Lancer une nouvelle écoute remplacera le bilan actuel une fois terminée.
+          Si vous annulez l'écoute en cours de route, le bilan existant sera conservé.
+        </p>
+        <div class="flex gap-3">
+          <%= link_to new_patient_note_path(@patient),
+                class: "flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 text-center" do %>
+            Créer une note
+          <% end %>
+          <%= button_to "Lancer l'écoute", reset_session_patient_bilan_path(@patient),
+                method: :post,
+                class: "flex-1 py-2.5 rounded-xl bg-sp-primary text-white text-sm font-semibold" %>
+        </div>
+      </div>
+    </div>
+  <% end %>
 
   <%# Modal de confirmation %>
   <div data-recording-target="confirmModal"

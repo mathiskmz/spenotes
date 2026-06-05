@@ -188,13 +188,22 @@ export default class extends Controller {
     this.timerInterval = setInterval(() => {
       this.elapsedSeconds++
       this._renderTimer()
-      // Arrêt automatique après 1 heure
-      if (this.elapsedSeconds >= 3600) this.finalize()
+      if (this.elapsedSeconds === 6900) {
+        this._playAlert("warning")
+        this._showWarningBanner("⏰ Il reste 5 minutes d'écoute")
+      }
+      if (this.elapsedSeconds >= 7200) {
+        clearInterval(this.timerInterval)
+        this._playAlert("end")
+        this.finalize()
+      }
     }, 1000)
   }
 
   _stopAll() {
     clearInterval(this.timerInterval)
+    clearTimeout(this.warningBannerTimeout)
+    document.getElementById("recording-warning-banner")?.remove()
     if (this.mediaRecorder?.state !== "inactive") this.mediaRecorder?.stop()
     this.stream?.getTracks().forEach(t => t.stop())
     this.isRecording = false
@@ -249,6 +258,49 @@ export default class extends Controller {
     if (!this.hasStatusTarget) return
     this.statusTarget.textContent = message
     setTimeout(() => { this.statusTarget.textContent = "" }, 3000)
+  }
+
+  _showWarningBanner(message) {
+    document.getElementById("recording-warning-banner")?.remove()
+    clearTimeout(this.warningBannerTimeout)
+
+    const banner = document.createElement("div")
+    banner.id = "recording-warning-banner"
+    banner.className = "fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-amber-100 border border-amber-400 text-amber-800 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 text-sm"
+    banner.innerHTML = `<span>${message}</span><button class="ml-2 bg-amber-500 text-white px-3 py-1 rounded">OK</button>`
+    banner.querySelector("button").addEventListener("click", () => {
+      banner.remove()
+      clearTimeout(this.warningBannerTimeout)
+    })
+    document.body.appendChild(banner)
+    this.warningBannerTimeout = setTimeout(() => banner.remove(), 30000)
+  }
+
+  _playAlert(type) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+      const beep = (startTime, freq, dur) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.frequency.value = freq
+        gain.gain.setValueAtTime(0.3, startTime)
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur)
+        osc.start(startTime)
+        osc.stop(startTime + dur)
+      }
+      if (type === "warning") {
+        beep(ctx.currentTime, 660, 0.3)
+        beep(ctx.currentTime + 0.4, 660, 0.3)
+      } else {
+        beep(ctx.currentTime, 880, 0.3)
+        beep(ctx.currentTime + 0.4, 880, 0.3)
+        beep(ctx.currentTime + 0.8, 880, 0.3)
+      }
+    } catch {
+      // Web Audio API non disponible
+    }
   }
 
   _csrfToken() {

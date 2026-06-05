@@ -1,12 +1,13 @@
 class BilansController < ApplicationController
   before_action :set_patient
-  before_action :set_bilan, only: [ :show, :edit, :update, :remove_file, :upload_chunk, :add_manual_note, :finalize, :regenerate_summary, :regenerate_recommendations ]
+  before_action :set_bilan, only: [ :show, :edit, :update, :remove_file, :upload_chunk, :add_manual_note, :finalize, :reset_session, :regenerate_summary, :regenerate_recommendations ]
 
   def show; end
 
   # Page d'enregistrement audio — crée le bilan s'il n'existe pas encore
   def recording
     @bilan = @patient.bilan || @patient.create_bilan!(user: current_user)
+    @bilan_has_content = @bilan.raw_transcription.present? || @bilan.content.present?
   end
 
   def new
@@ -86,6 +87,11 @@ class BilansController < ApplicationController
     @bilan.update!(recommendations: nil)
     RecommendationsJob.perform_later(@bilan.id)
     render json: { ok: true }
+  end
+
+  def reset_session
+    @bilan.reset_session!
+    redirect_to recording_patient_bilan_path(@patient)
   end
 
   def finalize
