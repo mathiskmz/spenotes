@@ -20,6 +20,7 @@ class SynthesisService
       - N'inclus JAMAIS de champs vides, crochets, signature, coordonnées ou date.
       - Si une section manque de données, omets-la entièrement — ne la mentionne pas.
       - Langage professionnel kinésithérapique : termes anatomiques précis, verbes d'observation clinique.
+      - Précise les tests cliniques et les concepts théoriques évoqués, si besoin utilise les pour structurer une partie de ton bilan.
       - Chaque section rédigée doit apporter une information concrète et exploitable.
 
       STRUCTURE DU BDK (n'inclure que les sections documentées) :
